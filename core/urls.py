@@ -9,5 +9,6 @@ router.register('datasets', views.EnergyDatasetViewSet)
 router.register('hydro-sites', views.HydroSiteViewSet)
 router.register('resource-metrics', views.ResourceMetricViewSet)
 router.register('climate-series', views.ClimateSeriesViewSet)
+router.register('stats', views.StatsViewSet, basename='stats')
 
 urlpatterns = router.urls

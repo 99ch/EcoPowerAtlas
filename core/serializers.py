@@ -73,6 +73,23 @@ class HydroSiteSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
+    def validate(self, attrs):
+        latitude = attrs.get('latitude', getattr(self.instance, 'latitude', None))
+        longitude = attrs.get('longitude', getattr(self.instance, 'longitude', None))
+        head = attrs.get('head_m', getattr(self.instance, 'head_m', None))
+        storage = attrs.get('storage_capacity_mwh', getattr(self.instance, 'storage_capacity_mwh', None))
+
+        if latitude is not None and not (-90 <= float(latitude) <= 90):
+            raise serializers.ValidationError({'latitude': 'La latitude doit être comprise entre -90 et 90.'})
+        if longitude is not None and not (-180 <= float(longitude) <= 180):
+            raise serializers.ValidationError({'longitude': 'La longitude doit être comprise entre -180 et 180.'})
+        if head is not None and float(head) < 0:
+            raise serializers.ValidationError({'head_m': 'Le dénivelé doit être positif.'})
+        if storage is not None and float(storage) < 0:
+            raise serializers.ValidationError({'storage_capacity_mwh': 'La capacité de stockage doit être positive.'})
+
+        return attrs
+
 
 class ResourceMetricSerializer(serializers.ModelSerializer):
     country_name = serializers.CharField(source='country.name', read_only=True)
@@ -95,6 +112,16 @@ class ResourceMetricSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
+
+    def validate_value(self, value):
+        if value < 0:
+            raise serializers.ValidationError('La valeur doit être positive.')
+        return value
+
+    def validate_year(self, value):
+        if value and (value < 1900 or value > 2100):
+            raise serializers.ValidationError('L’année doit être comprise entre 1900 et 2100.')
+        return value
 
 
 class ClimateSeriesSerializer(serializers.ModelSerializer):

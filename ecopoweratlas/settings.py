@@ -44,8 +44,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
     'corsheaders',
+    'drf_spectacular',
     'core',
 ]
 
@@ -136,6 +138,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
@@ -143,6 +149,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', '1') == '1'
@@ -151,6 +158,13 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
     if origin.strip()
 ]
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'EcoPowerAtlas API',
+    'DESCRIPTION': 'API pour la cartographie et l’analyse PHES.',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 
 # Default primary key field type

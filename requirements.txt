@@ -4,6 +4,8 @@ Django==4.2.26
 django-cors-headers==4.9.0
 django-filter==24.3
 djangorestframework==3.16.1
+drf-spectacular==0.27.2
+pandas==2.2.3
 pillow==11.3.0
 python-dotenv==1.2.1
 reportlab==4.4.4
