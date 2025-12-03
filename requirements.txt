@@ -2,6 +2,7 @@ asgiref==3.10.0
 charset-normalizer==3.4.4
 Django==4.2.26
 django-cors-headers==4.9.0
+django-filter==24.3
 djangorestframework==3.16.1
 pillow==11.3.0
 python-dotenv==1.2.1
