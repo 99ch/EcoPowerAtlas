@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from . import models, pdf, serializers
 from .permissions import IsStaffOrReadOnly
+from .tasks import generate_metric_snapshot
 
 
 
@@ -223,6 +224,50 @@ class ResourceMetricViewSet(viewsets.ModelViewSet):
 		response['Content-Disposition'] = 'attachment; filename="resource_metrics.pdf"'
 		return response
 
+	@extend_schema(
+		tags=['Resource Metrics'],
+		summary='Time series agrégées',
+		description='Retourne des agrégats annuels (somme + nombre de points) pour les métriques filtrées.',
+		parameters=[
+			OpenApiParameter('country__iso3', str, OpenApiParameter.QUERY, description='Code ISO3 du pays'),
+			OpenApiParameter('resource_type', str, OpenApiParameter.QUERY, description='Type de ressource'),
+		],
+		examples=[
+			OpenApiExample(
+				name='Série BEN solaire',
+				value={'results': [{'year': 2023, 'total_value': 2000, 'data_points': 3}]},
+			),
+		],
+	)
+	@action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+	def timeseries(self, request):
+		queryset = self.filter_queryset(self.get_queryset()).exclude(year__isnull=True)
+		iso3 = request.query_params.get('country__iso3')
+		if iso3:
+			queryset = queryset.filter(country__iso3__iexact=iso3)
+		resource_type = request.query_params.get('resource_type')
+		if resource_type:
+			queryset = queryset.filter(resource_type=resource_type)
+		series = list(
+			queryset.values('year')
+			.annotate(total_value=Sum('value'), data_points=Count('id'))
+			.order_by('year')
+		)
+		return Response({'results': series})
+
+	@extend_schema(
+		tags=['Resource Metrics'],
+		summary='Planifier un snapshot asynchrone',
+		description='Déclenche un job Celery pour agréger les métriques filtrées.',
+		request={'type': 'object', 'properties': {'country_iso3': {'type': 'string'}}},
+		responses={202: {'type': 'object', 'properties': {'task_id': {'type': 'string'}}}},
+	)
+	@action(detail=False, methods=['post'])
+	def enqueue_snapshot(self, request):
+		country_iso3 = request.data.get('country_iso3')
+		async_result = generate_metric_snapshot.delay(country_iso3=country_iso3)
+		return Response({'task_id': async_result.id}, status=status.HTTP_202_ACCEPTED)
+
 
 @extend_schema_view(
 	list=extend_schema(tags=['Climate Series']),
@@ -239,6 +284,47 @@ class ClimateSeriesViewSet(viewsets.ModelViewSet):
 	filterset_fields = ['variable', 'country__iso3', 'site']
 	search_fields = ['variable']
 	ordering_fields = ['created_at']
+
+	@extend_schema(
+		tags=['Climate Series'],
+		summary='Timeline normalisée',
+		description='Retourne les séries temporelles brutes (limitées) pour une variable donnée.',
+		parameters=[
+			OpenApiParameter('variable', str, OpenApiParameter.QUERY, required=True, description='Nom de la variable'),
+			OpenApiParameter('country__iso3', str, OpenApiParameter.QUERY, description='Filtre pays'),
+			OpenApiParameter('site', int, OpenApiParameter.QUERY, description='Identifiant du site'),
+			OpenApiParameter('limit', int, OpenApiParameter.QUERY, description='Nombre max de points renvoyés'),
+		],
+	)
+	@action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+	def timeline(self, request):
+		variable = request.query_params.get('variable')
+		if not variable:
+			return Response({'detail': 'Paramètre variable requis.'}, status=status.HTTP_400_BAD_REQUEST)
+		queryset = self.filter_queryset(self.get_queryset()).filter(variable=variable)
+		iso3 = request.query_params.get('country__iso3')
+		if iso3:
+			queryset = queryset.filter(country__iso3__iexact=iso3)
+		site_id = request.query_params.get('site')
+		if site_id:
+			queryset = queryset.filter(site_id=site_id)
+		try:
+			limit = int(request.query_params.get('limit', 500))
+		except ValueError:
+			return Response({'detail': 'Paramètre limit invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+		limit = max(10, min(limit, 2000))
+		payload = []
+		for series in queryset[:5]:
+			data = list(series.series or [])
+			payload.append({
+				'id': series.id,
+				'country_iso3': series.country.iso3,
+				'variable': series.variable,
+				'unit': series.unit,
+				'site': series.site_id,
+				'points': data[:limit],
+			})
+		return Response({'results': payload, 'limit': limit})
 
 
 @extend_schema(tags=['Stats'])

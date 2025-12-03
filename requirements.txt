@@ -3,11 +3,16 @@ charset-normalizer==3.4.4
 Django==4.2.26
 django-cors-headers==4.9.0
 django-filter==24.3
+dj-database-url==2.3.0
 djangorestframework==3.16.1
+celery==5.4.0
 drf-spectacular==0.27.2
+gunicorn==23.0.0
 pandas==2.2.3
+psycopg2-binary==2.9.10
 pillow==11.3.0
 python-dotenv==1.2.1
+redis==5.2.1
 reportlab==4.4.4
 sqlparse==0.5.3
 typing_extensions==4.15.0

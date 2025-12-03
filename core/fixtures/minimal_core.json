@@ -1,0 +1,30 @@
+[
+  {
+    "model": "core.country",
+    "pk": 1,
+    "fields": {
+      "name": "Benin",
+      "iso2": "BJ",
+      "iso3": "BEN",
+      "population": 12345678,
+      "boundary": null,
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "core.energydataset",
+    "pk": 1,
+    "fields": {
+      "name": "Demo Dataset",
+      "dataset_type": "resource",
+      "source": "Fixture",
+      "description": "Data used for tests",
+      "file_name": "demo.csv",
+      "file_checksum": "",
+      "metadata": {},
+      "created_at": "2025-01-01T00:00:00Z",
+      "updated_at": "2025-01-01T00:00:00Z"
+    }
+  }
+]
