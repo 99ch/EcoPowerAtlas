@@ -72,6 +72,11 @@ class CountryAPITest(APITestBase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIn('resource_type', response.content.decode())
 
+	def test_resource_metric_pdf(self):
+		response = self.client.get('/api/resource-metrics/export_pdf/')
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response['Content-Type'], 'application/pdf')
+
 	def test_stats_by_country_requires_iso3(self):
 		response = self.client.get('/api/stats/by_country/')
 		self.assertEqual(response.status_code, 400)

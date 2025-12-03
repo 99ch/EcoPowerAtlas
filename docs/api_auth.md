@@ -2,17 +2,24 @@
 
 Pour accéder aux endpoints en écriture :
 
-1. Créer un utilisateur staff dans l’admin Django (`/admin/`).
+1. Créer un utilisateur staff dans l’admin Django (`/admin/`) ou via :
+
+```bash
+./venv/bin/python manage.py createsuperuser --email admin@example.com --username admin
+```
+
 2. Générer un token :
 
 ```bash
-/Volumes/linux/bureau/EcoPowerAtlas/venv/bin/python manage.py drf_create_token <email>
+./venv/bin/python manage.py drf_create_token admin
 ```
 
-3. Utiliser ce token dans les requêtes :
+3. Stocker la clé obtenue (ex. `f5977761dc5a6f2b39e0713b0d4a341eaa3cfd7a`) dans un coffre.
+
+4. Utiliser ce token :
 
 ```
 Authorization: Token <clé>
 ```
 
-Les opérations en lecture restent publiques (permissions `IsAuthenticatedOrReadOnly`).
+Les opérations en lecture restent publiques (`IsAuthenticatedOrReadOnly`).

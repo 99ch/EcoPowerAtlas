@@ -2,12 +2,13 @@ import csv
 from io import StringIO
 
 from django.db.models import Count, Sum
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from django.http import HttpResponse
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from . import models, serializers
+from . import models, pdf, serializers
 from .permissions import IsStaffOrReadOnly
 
 
@@ -91,6 +92,12 @@ class HydroSiteViewSet(viewsets.ModelViewSet):
 		tags=['Hydro Sites'],
 		summary='Résumé global',
 		description='Retourne des agrégats sur les sites filtrés (totaux stockage/capacité, top pays).',
+		examples=[
+			OpenApiExample(
+				name='Résumé vide',
+				value={'total_sites': 0, 'total_storage_mwh': 0, 'total_capacity_mw': 0, 'top_countries': []},
+			)
+		],
 	)
 	@action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
 	def summary(self, request):
@@ -176,6 +183,12 @@ class ResourceMetricViewSet(viewsets.ModelViewSet):
 		tags=['Resource Metrics'],
 		summary='Export CSV',
 		description='Exporte les métriques filtrées en CSV.',
+		examples=[
+			OpenApiExample(
+				name='CSV exemple',
+				value='country_iso3,resource_type,metric,value,unit,year',
+			),
+		],
 	)
 	@action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
 	def export(self, request):
@@ -195,6 +208,19 @@ class ResourceMetricViewSet(viewsets.ModelViewSet):
 		buffer.seek(0)
 		response = Response(buffer.getvalue(), content_type='text/csv')
 		response['Content-Disposition'] = 'attachment; filename="resource_metrics.csv"'
+		return response
+
+	@extend_schema(
+		tags=['Resource Metrics'],
+		summary='Export PDF',
+		description='Génère un rapport PDF simple sur les métriques filtrées.',
+	)
+	@action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+	def export_pdf(self, request):
+		queryset = self.filter_queryset(self.get_queryset())
+		buffer = pdf.build_resource_metric_pdf(queryset, title='Resource Metrics Summary')
+		response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+		response['Content-Disposition'] = 'attachment; filename="resource_metrics.pdf"'
 		return response
 
 
@@ -237,6 +263,16 @@ class StatsViewSet(viewsets.ViewSet):
 	@extend_schema(
 		tags=['Stats'],
 		parameters=[OpenApiParameter('iso3', str, OpenApiParameter.QUERY, description='Code ISO3 du pays')],
+		examples=[
+			OpenApiExample(
+				name='Résumé BEN',
+				value={
+					'country': 'Benin',
+					'site_summary': {'total_sites': 1, 'total_storage_mwh': 50, 'total_capacity_mw': 20},
+					'resource_summary': [{'resource_type': 'solar', 'total': 2100, 'metrics': 1}],
+				},
+			),
+		],
 	)
 	@action(detail=False, methods=['get'])
 	def by_country(self, request):
