@@ -152,6 +152,8 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+AUTH_TOKEN_NAME = os.getenv('AUTH_TOKEN_NAME', 'EcoPowerAtlas API')
+
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', '1') == '1'
 CORS_ALLOWED_ORIGINS = [
     origin.strip()

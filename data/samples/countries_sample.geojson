@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "iso3": "BEN",
+        "iso2": "BJ",
+        "name": "Benin"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.6, 6.2], [1.7, 6.2], [0.8, 10.5], [3.8, 11.0], [2.6, 6.2]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "iso3": "NER",
+        "iso2": "NE",
+        "name": "Niger"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[13.0, 13.0], [11.0, 13.0], [8.0, 17.0], [13.0, 20.0], [13.0, 13.0]]]
+      }
+    }
+  ]
+}

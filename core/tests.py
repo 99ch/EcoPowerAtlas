@@ -67,6 +67,20 @@ class CountryAPITest(APITestBase):
 		self.assertEqual(response.status_code, 200)
 		self.assertTrue(response['Content-Disposition'].startswith('attachment;'))
 
+	def test_resource_metric_export_action(self):
+		response = self.client.get('/api/resource-metrics/export/')
+		self.assertEqual(response.status_code, 200)
+		self.assertIn('resource_type', response.content.decode())
+
+	def test_stats_by_country_requires_iso3(self):
+		response = self.client.get('/api/stats/by_country/')
+		self.assertEqual(response.status_code, 400)
+
+	def test_stats_by_country_returns_data(self):
+		response = self.client.get('/api/stats/by_country/', {'iso3': 'BEN'})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()['country'], 'Benin')
+
 
 class PermissionTest(APITestBase):
 	def setUp(self):

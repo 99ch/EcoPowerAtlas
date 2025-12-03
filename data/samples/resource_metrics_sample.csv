@@ -1,0 +1,4 @@
+iso3,country,metric,value,unit,year
+BEN,Benin,solar_potential_kwh_m2,2100,kWh/m2,2024
+NER,Niger,solar_potential_kwh_m2,2300,kWh/m2,2024
+CMR,Cameroon,hydro_capacity_mw,6500,MW,2023
